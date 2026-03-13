@@ -162,6 +162,7 @@ go build -ldflags="-s -w" -o icg .
 - `client-secret` 文件权限建议设置为 `600`
 - 启动顺序：先启动 infisical-agent，等 secrets 文件生成后再启动其他服务
 - Agent 默认每 5 分钟轮询一次更新
+- 项目已配置 [lefthook](https://github.com/evilmartians/lefthook) + [gitleaks](https://github.com/gitleaks/gitleaks)，每次提交前自动扫描暂存区，防止意外提交密钥。首次克隆后运行 `lefthook install` 即可启用
 
 ## 从已有服务迁移
 可以参考[迁移说明](./INFISICAL-MIGRATION.md)
