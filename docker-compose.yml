@@ -1,11 +1,23 @@
 services:
+  config-init:
+    image: ghcr.io/yewfence/infisical-config-init:latest
+    volumes:
+      - ./config.yaml:/input/config.yaml:ro
+      - generated-config:/output
+
   infisical-agent:
     image: infisical/cli:latest
     container_name: infisical-agent
     restart: always
-    command: agent --config=/config/config.yaml
+    command: agent --config=/generated/config.yaml
+    depends_on:
+      config-init:
+        condition: service_completed_successfully
     volumes:
-      - ./config-no-manually-edit.yaml:/config/config.yaml:ro
+      - generated-config:/generated:ro
       - ./client-id:/config/client-id:ro
       - ./client-secret:/config/client-secret:ro
       - ./secrets:/infisical-secrets
+
+volumes:
+  generated-config:
