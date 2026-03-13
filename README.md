@@ -38,40 +38,20 @@ echo "your-client-id" > client-id
 echo "your-client-secret" > client-secret
 chmod 600 client-secret
 
-# 手动创建 secrets 目录避免 docker 权限问题
-mkdir secrets
-
 # 编辑服务配置
 cp config.example.yaml config.yaml
 vim config.yaml
 ```
 
-### 3. 生成配置
-#### Linux
-```bash
-# 下载生成器
-curl -Lo icg https://github.com/YewFence/infisical-agent/releases/latest/download/infisical-config-generator-linux-amd64
-# 给予权限
-chmod +x icg
-# 运行生成器
-./icg
-```
+### 3. 启动 Agent
 
-#### Windows
-```PowerShell
-# Windows
-# 下载生成器
-Invoke-WebRequest -Uri "https://github.com/YewFence/infisical-agent/releases/latest/download/infisical-config-generator-windows-amd64.exe" -OutFile "icg.exe"
+> 具体被 Infisical CLI 读取的配置文件会由 init 容器自动生成，无需手动下载或运行生成器。
 
-# 运行生成器
-./icg.exe
-```
-### 4. 启动 Agent
 ```bash
 docker compose up -d
 ```
 
-### 5. 生成 .env 软链接
+### 4. 生成 .env 软链接
 > 具体命令可以参考配置生成器的输出，此处命令仅作示例
 ```bash
 📋 在各服务目录下创建符号链接:
@@ -113,18 +93,18 @@ services:
 
 ```
 infisical-agent/
-├── docker-compose.yml            # Agent 容器配置
-├── config.yaml.tmpl              # 配置模板
-├── config.yaml                   # 服务列表（需编辑）
-├── icg(.exe)                     # 配置生成器可执行文件（在 Release 页面中下载）
-├── config-no-manually-edit.yaml  # 生成的配置（自动生成）
-├── client-id                     # Machine Identity ID（需创建）
-├── client-secret                 # Machine Identity Secret（需创建）
-└── secrets/                      # 生成的 secrets 文件（自动创建）
+├── docker-compose.yml    # Agent 容器配置
+├── config.yaml           # 服务列表（需自行创建并编辑）
+├── config.example.yaml   # 配置示例
+├── client-id             # Machine Identity ID（需自行创建）
+├── client-secret         # Machine Identity Secret（需自行创建）
+└── secrets/              # 生成的 secrets 文件（自动创建，请注意安全问题）
     ├── vaultwarden.env
     ├── postgres.env
     └── ...
 ```
+
+> 配置模板 `config.yaml.tmpl` 和生成器已烤入 init 容器镜像
 
 ## 在其他服务中使用
 
@@ -159,23 +139,35 @@ services:
 
 1. **Infisical**：创建文件夹 `/<服务名>`，添加环境变量
 2. **config.yaml**：在 `services` 列表中添加服务名
-3. **重新生成**：运行 `./icg`(Windows: `icg.exe`)
+3. **重启容器**：`docker compose up -d --force-recreate`
 4. **业务服务**：
    - 创建符号链接：`ln -sf ../infisical-agent/secrets/<服务名>.env .env`
    - 在 `docker-compose.yml` 中添加 `env_file: .env`
 
-## 自行编译
+## 本地开发与测试
+
+修改了生成器或模板后，可以用 `--build` 在本地构建 init 容器镜像进行测试：
+
+```bash
+docker compose up -d --build
+```
+
+如果需要在本地直接运行生成器（不通过 Docker），可以手动编译：
 
 ```bash
 cd generator
-go build -ldflags="-s -w" -o infisical-config-generator .
+go build -ldflags="-s -w" -o icg .
+./icg
 ```
+
+也可以直接从 [Release 页面](https://github.com/YewFence/infisical-agent/releases/latest) 下载预编译的二进制文件。
 
 ## 注意事项
 
 - `client-secret` 文件权限建议设置为 `600`
 - 启动顺序：先启动 infisical-agent，等 secrets 文件生成后再启动其他服务
 - Agent 默认每 5 分钟轮询一次更新
+- 项目已配置 [lefthook](https://github.com/evilmartians/lefthook) + [gitleaks](https://github.com/gitleaks/gitleaks)，每次提交前自动扫描暂存区，防止意外提交密钥。首次克隆后运行 `lefthook install` 即可启用
 
 ## 从已有服务迁移
 可以参考[迁移说明](./INFISICAL-MIGRATION.md)

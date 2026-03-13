@@ -1,0 +1,9 @@
+.git
+.claude
+secrets/
+client-id
+client-secret
+config.yaml
+config-no-manually-edit.yaml
+*.exe
+icg
