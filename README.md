@@ -144,13 +144,18 @@ services:
    - 创建符号链接：`ln -sf ../infisical-agent/secrets/<服务名>.env .env`
    - 在 `docker-compose.yml` 中添加 `env_file: .env`
 
-## 自行编译
+## 本地开发与测试
 
-如果需要在本地使用生成器（不通过 Docker），可以手动编译：
+修改了生成器或模板后，可以用 `--build` 在本地构建 init 容器镜像进行测试：
+
+```bash
+docker compose up -d --build
+```
+
+如果需要在本地直接运行生成器（不通过 Docker），可以手动编译：
 
 ```bash
 cd generator
-# infisical-config-generator
 go build -ldflags="-s -w" -o icg .
 ./icg
 ```

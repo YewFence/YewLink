@@ -1,6 +1,7 @@
 services:
   config-init:
     image: ghcr.io/yewfence/infisical-config-init:latest
+    build: .
     volumes:
       - ./config.yaml:/input/config.yaml:ro
       - generated-config:/output
