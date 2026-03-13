@@ -2,7 +2,7 @@ FROM golang:1.21-alpine AS builder
 WORKDIR /build
 COPY generator/go.mod generator/go.sum ./
 RUN go mod download
-COPY generator/main.go .
+COPY generator/ .
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o icg .
 
 FROM alpine:3.19
