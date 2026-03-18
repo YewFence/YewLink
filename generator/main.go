@@ -20,7 +20,99 @@ type Config struct {
 	Services        []string `yaml:"services"`
 }
 
+type GeneratorConfig struct {
+	projectDir string
+	outputMode string
+}
+
+const (
+	outputModeRelative = "relative"
+	outputModeAbsolute = "absolute"
+)
+
 const projectHomepage = "https://github.com/YewFence/infisical-agent"
+
+// 解析项目目录：优先使用传入的参数，其次从环境变量，最后自动检测
+// 如果是绝对路径，提取最后一个目录名
+func resolveProjectDir(flagValue string) string {
+	if flagValue != "" {
+		return extractDirName(flagValue)
+	}
+	// 从环境变量读取 PROJECT_DIR
+	if envValue := os.Getenv("PROJECT_DIR"); envValue != "" {
+		return extractDirName(envValue)
+	}
+	// 自动检测：优先用可执行文件所在目录，其次用工作目录
+	if name := getExecutableDirName(); name != "" && name != "." {
+		return name
+	}
+	return getWorkingDirName()
+}
+
+// 从路径中提取最后一个目录名（无论绝对或相对路径）
+func extractDirName(path string) string {
+	return filepath.Base(path)
+}
+
+// 解析输出模式：从环境变量读取，默认相对路径
+func resolveOutputMode() string {
+	mode := os.Getenv("OUTPUT_MODE")
+	switch strings.ToLower(mode) {
+	case outputModeAbsolute:
+		return outputModeAbsolute
+	default:
+		return outputModeRelative
+	}
+}
+
+// 构建符号链接命令
+func buildLnCommand(service string, cfg GeneratorConfig) string {
+	if cfg.outputMode == outputModeAbsolute {
+		// 绝对路径模式：直接 ln 到完整路径
+		secretsPath := filepath.Join(cfg.projectDir, "secrets", service+".env")
+		targetPath := filepath.Join(cfg.projectDir, service, ".env")
+		return fmt.Sprintf("ln -sf %s %s", secretsPath, targetPath)
+	}
+
+	// 相对路径模式：secrets 相对于服务目录的路径
+	// cd 到 ../<service> 后，secrets 路径是 ../<projectDir>/secrets/<service>.env
+	relSecretsPath := filepath.Join("..", service, "secrets", service+".env")
+	return fmt.Sprintf("cd ../%s && ln -sf %s .env", service, relSecretsPath)
+}
+
+// 构建备份命令
+func buildMvCommand(service string, cfg GeneratorConfig) string {
+	if cfg.outputMode == outputModeAbsolute {
+		// 绝对路径模式
+		targetPath := filepath.Join(cfg.projectDir, service, ".env")
+		return fmt.Sprintf("mv %s %s.bak", targetPath, targetPath)
+	}
+
+	// 相对路径模式
+	return fmt.Sprintf("cd ../%s && mv .env .env.bak", service)
+}
+
+// 获取可执行文件所在目录名
+func getExecutableDirName() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	dir := filepath.Dir(exe)
+	if dir == "." || dir == "" {
+		return ""
+	}
+	return filepath.Base(dir)
+}
+
+// 获取当前工作目录名作为回退
+func getWorkingDirName() string {
+	cwd, err := os.Getwd()
+	if err != nil || cwd == "" || cwd == "." {
+		return "infisical-agent"
+	}
+	return filepath.Base(cwd)
+}
 
 // 程序入口：读取配置、校验并渲染模板输出文件
 func main() {
@@ -28,12 +120,19 @@ func main() {
 		servicesFile string
 		templateFile string
 		outputFile   string
+		projectDir   string
 	)
 
 	flag.StringVar(&servicesFile, "services", "config.yaml", "服务配置文件路径")
 	flag.StringVar(&templateFile, "template", "config.yaml.tmpl", "模板文件路径")
 	flag.StringVar(&outputFile, "output", "config-no-manually-edit.yaml", "输出文件路径")
+	flag.StringVar(&projectDir, "project-dir", "", "项目根目录（用于生成符号链接命令）")
 	flag.Parse()
+
+	genConfig := GeneratorConfig{
+		projectDir: resolveProjectDir(projectDir),
+		outputMode: resolveOutputMode(),
+	}
 
 	// 读取服务配置
 	config, err := loadConfig(servicesFile)
@@ -80,10 +179,10 @@ func main() {
 	}
 
 	// 打印符号链接命令供复制
-	agentDirName := getExecutableDirName()
 	fmt.Println("\n📋 在各服务目录下创建符号链接:")
 	for _, svc := range config.Services {
-		fmt.Printf("    cd ../%s && ln -sf ../%s/secrets/%s.env .env\n", svc, agentDirName, svc)
+		cmd := buildLnCommand(svc, genConfig)
+		fmt.Printf("    %s\n", cmd)
 	}
 
 	// 打印 env_file 路径供复制
@@ -93,7 +192,8 @@ func main() {
 	// 打印备份建议
 	fmt.Printf("\n💡 建议先备份原 .env 文件（如果有）\n")
 	for _, svc := range config.Services {
-		fmt.Printf("    mv ../%s/.env ../%s/.env.bak\n", svc, svc)
+		cmd := buildMvCommand(svc, genConfig)
+		fmt.Printf("    %s\n", cmd)
 	}
 
 }
@@ -165,28 +265,6 @@ func buildSecretPath(root, service string) string {
 		return "/" + service
 	}
 	return root + "/" + service
-}
-
-// 获取可执行文件所在目录名
-func getExecutableDirName() string {
-	exe, err := os.Executable()
-	if err != nil {
-		return getWorkingDirName()
-	}
-	dir := filepath.Dir(exe)
-	if dir == "." || dir == "" {
-		return getWorkingDirName()
-	}
-	return filepath.Base(dir)
-}
-
-// 获取当前工作目录名作为回退
-func getWorkingDirName() string {
-	cwd, err := os.Getwd()
-	if err != nil || cwd == "" || cwd == "." {
-		return "infisical-agent"
-	}
-	return filepath.Base(cwd)
 }
 
 // 统一错误输出并退出
