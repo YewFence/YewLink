@@ -4,8 +4,8 @@ services:
     build: .
     environment:
       # 辅助命令的输出路径格式为相对目录还是绝对目录
-      - OUTPUT_MODE=absolute
-      # - OUTPUT_MODE=relative
+      # - OUTPUT_MODE=absolute
+      - OUTPUT_MODE=relative
       - PROJECT_DIR=${PWD}
     volumes:
       - ./config.yaml:/input/config.yaml:ro
