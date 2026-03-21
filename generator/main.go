@@ -13,6 +13,7 @@ type GeneratorConfig struct {
 	projectName string
 	projectPath string // 完整路径（绝对路径），用于构建符号链接命令
 	outputMode  string
+	autoPrune   bool
 }
 
 const projectHomepage = "https://github.com/YewFence/infisical-agent"
@@ -44,6 +45,7 @@ func main() {
 		projectName: name,
 		projectPath: absPath,
 		outputMode:  resolveOutputMode(),
+		autoPrune:   resolveAutoPrune(),
 	}
 
 	// 读取服务配置
@@ -120,9 +122,14 @@ func main() {
 	}
 
 	// 清理过期 secret 文件
-	if secretsDir != "" {
-		if err := cleanStaleSecrets(secretsDir, config.Services); err != nil {
-			fmt.Fprintf(os.Stderr, "⚠ 清理过期 secret 失败: %v\n", err)
+	if genConfig.autoPrune {
+		fmt.Printf("\n⚠ auto_prune 已启用，尝试清理过期 secret...\n")
+		if secretsDir != "" {
+			if err := cleanStaleSecrets(secretsDir, config.Services); err != nil {
+				fmt.Fprintf(os.Stderr, "⚠ 清理过期 secret 失败: %v\n", err)
+			}
+		} else {
+			fmt.Printf("⚠ secrets 存储目录未设置，跳过清理过期 secret\n")
 		}
 	}
 

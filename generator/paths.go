@@ -50,6 +50,11 @@ func resolveOutputMode() string {
 	}
 }
 
+func resolveAutoPrune() bool {
+	autoPrune := os.Getenv("AUTO_PRUNE")
+	return autoPrune == "" || strings.ToLower(autoPrune) == "true"
+}
+
 // 构建符号链接命令
 func buildLnCommand(service string, cfg GeneratorConfig) string {
 	secretsPath := filepath.Join(cfg.projectPath, "secrets", service+".env")

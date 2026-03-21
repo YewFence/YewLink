@@ -6,6 +6,8 @@ services:
     environment:
       # 辅助命令的输出路径格式为相对目录还是绝对目录
       # - OUTPUT_MODE=absolute
+      # 是否自动清理过期的秘密文件(默认启用)，可以改为 false 来保留过期文件
+      # - AUTO_PRUNE=true
       - OUTPUT_MODE=relative
       - PROJECT_DIR=${PWD}
     volumes:
