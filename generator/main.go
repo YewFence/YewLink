@@ -34,6 +34,9 @@ func main() {
 	flag.StringVar(&projectDir, "project-dir", "", "项目根目录（用于生成符号链接命令）")
 	flag.StringVar(&clientIDFile, "client-id-file", "/config/client-id", "client-id 凭据文件路径（auto_discover 模式使用）")
 	flag.StringVar(&clientSecretFile, "client-secret-file", "/config/client-secret", "client-secret 凭据文件路径（auto_discover 模式使用）")
+
+	var secretsDir string
+	flag.StringVar(&secretsDir, "secrets-dir", "", "secrets 输出目录（用于清理过期 .env 文件，为空则跳过清理）")
 	flag.Parse()
 
 	name, absPath := resolveProjectDir(projectDir)
@@ -114,6 +117,13 @@ func main() {
 	fmt.Printf("  - 服务数量: %d\n", len(config.Services))
 	for _, svc := range config.Services {
 		fmt.Printf("    • %s\n", svc)
+	}
+
+	// 清理过期 secret 文件
+	if secretsDir != "" {
+		if err := cleanStaleSecrets(secretsDir, config.Services); err != nil {
+			fmt.Fprintf(os.Stderr, "⚠ 清理过期 secret 失败: %v\n", err)
+		}
 	}
 
 	// 打印符号链接命令供复制

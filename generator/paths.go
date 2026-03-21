@@ -104,6 +104,47 @@ func getExecutableDir() string {
 	return dir
 }
 
+// 清理 secrets 目录中不属于当前服务列表的 .env 文件
+func cleanStaleSecrets(dir string, services []string) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		// 目录不存在（首次运行），静默跳过
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("读取 secrets 目录 %s: %w", dir, err)
+	}
+
+	// 构建当前服务的期望文件名集合
+	expected := make(map[string]struct{}, len(services))
+	for _, svc := range services {
+		expected[svc+".env"] = struct{}{}
+	}
+
+	var removed []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || !strings.HasSuffix(name, ".env") {
+			continue
+		}
+		if _, ok := expected[name]; ok {
+			continue
+		}
+		path := filepath.Join(dir, name)
+		if err := os.Remove(path); err != nil {
+			return fmt.Errorf("删除过期 secret %s: %w", path, err)
+		}
+		removed = append(removed, name)
+	}
+
+	if len(removed) > 0 {
+		fmt.Printf("✓ 清理过期 secret: %s\n", strings.Join(removed, ", "))
+	} else {
+		fmt.Println("✓ 无过期 secret 文件")
+	}
+	return nil
+}
+
 // 获取可执行文件所在目录名
 func getExecutableDirName() string {
 	return filepath.Base(getExecutableDir())

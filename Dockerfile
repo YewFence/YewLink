@@ -9,4 +9,4 @@ FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /build/icg /usr/local/bin/icg
 COPY config.yaml.tmpl .
-ENTRYPOINT ["icg", "-services", "/input/config.yaml", "-template", "/app/config.yaml.tmpl", "-output", "/output/config.yaml"]
+ENTRYPOINT ["icg", "-services", "/input/config.yaml", "-template", "/app/config.yaml.tmpl", "-output", "/output/config.yaml", "-secrets-dir", "/secrets"]

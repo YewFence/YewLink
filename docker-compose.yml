@@ -14,6 +14,8 @@ services:
       # 自动识别服务名时需要载入凭证
       - ./client-id:/config/client-id:ro
       - ./client-secret:/config/client-secret:ro
+      # 用于清理过期的秘密文件
+      - ./secrets:/secrets
 
   infisical-agent:
     # 个人修复版本，详细信息见 README.md
