@@ -10,6 +10,9 @@ services:
     volumes:
       - ./config.yaml:/input/config.yaml:ro
       - generated-config:/output
+      # 自动识别服务名时需要载入凭证
+      - ./client-id:/config/client-id:ro
+      - ./client-secret:/config/client-secret:ro
 
   infisical-agent:
     image: infisical/cli:latest
