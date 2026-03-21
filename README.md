@@ -69,37 +69,28 @@ docker compose up -d
 
 ### config.yaml
 
-```yaml
-# Infisical 项目 ID
-project_id: "your-project-id"
+查看[示例文件](config.example.yaml)
 
-# 环境 (dev/staging/prod)
-environment: "prod"
+## Docker Compose
 
-# 轮询间隔
-polling_interval: "300s"
+示例文件见 [docker-compose.yml](docker-compose.yml)
 
-# 可选：读取配置的根文件夹，可以用来在一个项目中区分不同环境
-# root_folder: "/project-a"
+镜像使用 `ghcr.io/yewfence/infisical-config-init` 与 `ghcr.io/yewfence/infisical-cli:latest`
+由于[官方 CLI](github.com/infisical/cli) 有 BUG，`agent` 模式下无法输出变量的注释到 `.env` 文件中，详见 [ISSUE](https://github.com/Infisical/cli/issues/103)，我已经提交了修复 [PR](https://github.com/Infisical/cli/pull/104)，但是尚未被合并，所以我在 fork 中自行构建了已修复问题的版本，并跟随官方版本更新
 
-# 服务列表 - 每个服务名称对应 Infisical 中读取配置的根文件夹下的一个文件夹
-services:
-  - nginx
-  # - vaultwarden
-  # - postgres
-```
+如果你不介意该问题，可以根据 `docker-compose.yml` 文件中的注释替换为使用官方镜像 `infisical/cli:latest`。
 
 ### 目录结构
 
 ```
 infisical-agent/
 ├── docker-compose.yml    # Agent 容器配置
-├── config.yaml           # 服务列表（需自行创建并编辑）
+├── config.yaml           # 配置文件（需自行创建并编辑）
 ├── config.example.yaml   # 配置示例
 ├── client-id             # Machine Identity ID（需自行创建）
 ├── client-secret         # Machine Identity Secret（需自行创建）
 └── secrets/              # 生成的 secrets 文件（自动创建，请注意安全问题）
-    ├── vaultwarden.env
+    ├── nginx.env
     ├── postgres.env
     └── ...
 ```
@@ -138,6 +129,7 @@ services:
 ## 添加新服务
 
 1. **Infisical**：创建文件夹 `/<服务名>`，添加环境变量
+> 开启了自动发现功能后可以跳过第二步
 2. **config.yaml**：在 `services` 列表中添加服务名
 3. **重启容器**：`docker compose up -d --force-recreate`
 4. **业务服务**：
@@ -167,7 +159,7 @@ go build -ldflags="-s -w" -o icg .
 - `client-secret` 文件权限建议设置为 `600`
 - 启动顺序：先启动 infisical-agent，等 secrets 文件生成后再启动其他服务
 - Agent 默认每 5 分钟轮询一次更新
-- 项目已配置 [lefthook](https://github.com/evilmartians/lefthook) + [gitleaks](https://github.com/gitleaks/gitleaks)，每次提交前自动扫描暂存区，防止意外提交密钥。首次克隆后运行 `lefthook install` 即可启用
+- 项目已配置 [lefthook](https://github.com/evilmartians/lefthook) + [gitleaks](https://github.com/gitleaks/gitleaks)，每次提交前自动扫描暂存区，防止意外提交密钥。若开发本项目建议首次克隆后运行 `lefthook install` 以确保密钥不会被错误提交
 
 ## 从已有服务迁移
-可以参考[迁移说明](./INFISICAL-MIGRATION.md)
+将原 .env 文件中的变量复制到 Infisical 网页中并导入，启动该服务，根据提示创建软链接即可

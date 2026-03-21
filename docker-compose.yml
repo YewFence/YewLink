@@ -1,6 +1,7 @@
 services:
   config-init:
     image: ghcr.io/yewfence/infisical-config-init:latest
+    # 开发时可本地构建
     build: .
     environment:
       # 辅助命令的输出路径格式为相对目录还是绝对目录
@@ -15,7 +16,10 @@ services:
       - ./client-secret:/config/client-secret:ro
 
   infisical-agent:
-    image: infisical/cli:latest
+    # 个人修复版本，详细信息见 README.md
+    image: ghcr.io/yewfence/infisical-cli:latest
+    # 官方 CLI 镜像
+    # image: infisical/cli:latest
     container_name: infisical-agent
     restart: always
     command: agent --config=/generated/config.yaml
