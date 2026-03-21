@@ -13,6 +13,9 @@ config-no-manually-edit.yaml
 config.yaml
 services.yaml
 
+# Cache
+.gocache/
+
 # 生成的 secrets
 secrets/**
 !secrets/.gitkeep
