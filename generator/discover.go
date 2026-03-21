@@ -5,10 +5,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
+
+const maxRetries = 3
+
+// httpDoWithRetry 对 HTTP 请求进行重试，仅在网络层错误时重试，HTTP 4xx/5xx 不重试
+func httpDoWithRetry(do func() (*http.Response, error)) (*http.Response, error) {
+	var lastErr error
+	for i := range maxRetries {
+		resp, err := do()
+		if err == nil {
+			return resp, nil
+		}
+		lastErr = err
+		delay := time.Duration(2<<i) * time.Second
+		log.Printf("请求失败 (%d/%d)，%v 后重试: %v", i+1, maxRetries, delay, err)
+		time.Sleep(delay)
+	}
+	return nil, lastErr
+}
 
 // 读取凭据文件内容（trim 换行符和空格）
 func readCredentialFile(path string) (string, error) {
@@ -25,13 +45,15 @@ func fetchToken(host, clientID, clientSecret string) (string, error) {
 		"clientId":     clientID,
 		"clientSecret": clientSecret,
 	})
-	resp, err := http.Post(
-		host+"/api/v1/auth/universal-auth/login",
-		"application/json",
-		bytes.NewReader(body),
-	)
+	resp, err := httpDoWithRetry(func() (*http.Response, error) {
+		return http.Post(
+			host+"/api/v1/auth/universal-auth/login",
+			"application/json",
+			bytes.NewReader(body),
+		)
+	})
 	if err != nil {
-		return "", fmt.Errorf("认证请求失败: %w", err)
+		return "", fmt.Errorf("认证请求失败（已重试 %d 次）: %w", maxRetries, err)
 	}
 	defer resp.Body.Close()
 
@@ -65,9 +87,11 @@ func discoverFolders(host, projectID, environment, path, token string) ([]string
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Authorization", "Bearer "+token)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpDoWithRetry(func() (*http.Response, error) {
+		return http.DefaultClient.Do(req)
+	})
 	if err != nil {
-		return nil, fmt.Errorf("列举文件夹请求失败: %w", err)
+		return nil, fmt.Errorf("列举文件夹请求失败（已重试 %d 次）: %w", maxRetries, err)
 	}
 	defer resp.Body.Close()
 
