@@ -162,7 +162,7 @@ func TestValidateConfigErrors(t *testing.T) {
 				Environment: "prod",
 				Services:    []string{"   "},
 			},
-			want: "服务设置有效的名称",
+			want: "服务名为空或无效",
 		},
 	}
 
@@ -194,6 +194,62 @@ func TestValidateConfigAllowsAutoDiscoverWithoutServices(t *testing.T) {
 	}
 	if len(config.Services) != 0 {
 		t.Fatalf("Services = %#v, want empty", config.Services)
+	}
+}
+
+func TestValidateServiceName(t *testing.T) {
+	t.Helper()
+
+	valid := []string{"nginx", "my-api", "service_v2", "app.web"}
+	for _, name := range valid {
+		if err := validateServiceName(name); err != nil {
+			t.Errorf("validateServiceName(%q) unexpected error: %v", name, err)
+		}
+	}
+
+	invalid := []struct {
+		name string
+		want string
+	}{
+		{name: "", want: "为空或无效"},
+		{name: ".", want: "为空或无效"},
+		{name: " nginx", want: "首尾空白"},
+		{name: "nginx ", want: "首尾空白"},
+		{name: "my/service", want: "路径分隔符"},
+		{name: `my\service`, want: "路径分隔符"},
+		{name: "..", want: "路径穿越"},
+		{name: "../../etc", want: "路径分隔符"},
+		{name: "svc..name", want: "路径穿越"},
+	}
+	for _, tc := range invalid {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateServiceName(tc.name)
+			if err == nil {
+				t.Fatalf("validateServiceName(%q) expected error", tc.name)
+			}
+			if !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("validateServiceName(%q) error = %q, want substring %q", tc.name, err.Error(), tc.want)
+			}
+		})
+	}
+}
+
+func TestValidateServices(t *testing.T) {
+	t.Helper()
+
+	// 正常情况：trim 后校验通过
+	services := []string{" nginx ", "api"}
+	if err := validateServices(services); err != nil {
+		t.Fatalf("validateServices() unexpected error: %v", err)
+	}
+	if services[0] != "nginx" || services[1] != "api" {
+		t.Fatalf("validateServices() did not trim, got %#v", services)
+	}
+
+	// 异常情况：包含非法名称
+	bad := []string{"nginx", "../evil"}
+	if err := validateServices(bad); err == nil {
+		t.Fatalf("validateServices() expected error for path traversal")
 	}
 }
 
