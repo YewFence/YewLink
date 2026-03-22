@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -26,7 +27,9 @@ func loadConfig(path string) (*Config, error) {
 	}
 
 	var config Config
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder.KnownFields(true)
+	if err := decoder.Decode(&config); err != nil {
 		return nil, fmt.Errorf("解析 YAML: %w", err)
 	}
 
@@ -44,16 +47,10 @@ func validateConfig(config *Config) error {
 	if !config.AutoDiscover && len(config.Services) == 0 {
 		return fmt.Errorf("请在 config.yaml 中至少添加一个服务，或设置 auto_discover: true")
 	}
-	// 规范化服务名称：去掉首尾空白并确保每项非空
-	trimmedServices := make([]string, 0, len(config.Services))
-	for _, service := range config.Services {
-		trimmed := strings.TrimSpace(service)
-		if trimmed == "" {
-			return fmt.Errorf("请在 config.yaml 中为每个服务设置有效的名称")
-		}
-		trimmedServices = append(trimmedServices, trimmed)
+	// 规范化并校验服务名称
+	if err := validateServices(config.Services); err != nil {
+		return err
 	}
-	config.Services = trimmedServices
 	if config.PollingInterval == "" {
 		config.PollingInterval = "300s"
 	}
@@ -62,6 +59,34 @@ func validateConfig(config *Config) error {
 	}
 	config.Host = strings.TrimRight(config.Host, "/")
 	config.RootFolder = normalizeRootFolder(config.RootFolder)
+	return nil
+}
+
+// validateServiceName 校验单个服务名是否安全可用于文件路径和 shell 命令
+func validateServiceName(name string) error {
+	if name == "" || name == "." {
+		return fmt.Errorf("服务名为空或无效")
+	}
+	if name != strings.TrimSpace(name) {
+		return fmt.Errorf("服务名 %q 包含首尾空白字符", name)
+	}
+	if strings.ContainsAny(name, `/\`) {
+		return fmt.Errorf("服务名 %q 包含路径分隔符", name)
+	}
+	if strings.Contains(name, "..") {
+		return fmt.Errorf("服务名 %q 包含路径穿越序列", name)
+	}
+	return nil
+}
+
+// validateServices 对服务名列表进行 trim + 逐项校验，原地修改 slice
+func validateServices(services []string) error {
+	for i, svc := range services {
+		services[i] = strings.TrimSpace(svc)
+		if err := validateServiceName(services[i]); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

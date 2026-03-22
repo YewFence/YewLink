@@ -16,11 +16,19 @@ const (
 // 优先使用传入的参数，其次从环境变量，最后自动检测
 func resolveProjectDir(flagValue string) (name string, absPath string) {
 	if flagValue != "" {
-		return filepath.Base(flagValue), flagValue
+		absPath, err := filepath.Abs(flagValue)
+		if err != nil {
+			absPath = flagValue
+		}
+		return filepath.Base(absPath), absPath
 	}
 	// 从环境变量读取 PROJECT_DIR
 	if envValue := os.Getenv("PROJECT_DIR"); envValue != "" {
-		return filepath.Base(envValue), envValue
+		absPath, err := filepath.Abs(envValue)
+		if err != nil {
+			absPath = envValue
+		}
+		return filepath.Base(absPath), absPath
 	}
 	// 自动检测：优先用可执行文件所在目录，其次用工作目录
 	if exePath := getExecutableDir(); exePath != "" && exePath != "." {

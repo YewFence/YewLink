@@ -85,6 +85,9 @@ func main() {
 			exitWithError("auto_discover 模式未发现任何文件夹", fmt.Errorf("路径 %q 下没有子文件夹", discoverPath))
 		}
 		config.Services = folders
+		if err := validateServices(config.Services); err != nil {
+			exitWithError("auto_discover 返回的文件夹名称不合法", err)
+		}
 		fmt.Printf("✓ 自动发现 %d 个服务: %s\n", len(folders), strings.Join(folders, ", "))
 	}
 
