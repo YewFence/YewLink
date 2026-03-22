@@ -1,18 +1,29 @@
 services:
   config-init:
     image: ghcr.io/yewfence/infisical-config-init:latest
+    # 开发时可本地构建
     build: .
     environment:
       # 辅助命令的输出路径格式为相对目录还是绝对目录
       # - OUTPUT_MODE=absolute
+      # 是否自动清理过期的秘密文件(默认启用)，可以改为 false 来保留过期文件
+      # - AUTO_PRUNE=true
       - OUTPUT_MODE=relative
       - PROJECT_DIR=${PWD}
     volumes:
       - ./config.yaml:/input/config.yaml:ro
       - generated-config:/output
+      # 自动识别服务名时需要载入凭证
+      - ./client-id:/config/client-id:ro
+      - ./client-secret:/config/client-secret:ro
+      # 用于清理过期的秘密文件
+      - ./secrets:/secrets
 
   infisical-agent:
-    image: infisical/cli:latest
+    # 个人修复版本，详细信息见 README.md
+    image: ghcr.io/yewfence/infisical-cli:latest
+    # 官方 CLI 镜像
+    # image: infisical/cli:latest
     container_name: infisical-agent
     restart: always
     command: agent --config=/generated/config.yaml

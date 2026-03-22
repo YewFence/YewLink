@@ -16,7 +16,12 @@ polling_interval: "300s"
 # 可选：Infisical 根文件夹（将作为读取配置的根目录）
 # root_folder: "/project-a"
 
+# 自动发现模式：设为 true 时自动从 Infisical 读取 root_folder 下的所有文件夹作为服务
+# 开启后 services 字段可省略；凭据路径通过 -client-id-file / -client-secret-file 指定
+# auto_discover: true
+
 # 服务列表 - 每个服务名称对应 Infisical 中读取配置的根文件夹下的一个文件夹
+# auto_discover: true 时可省略此字段
 services:
   - nginx
   # - postgres

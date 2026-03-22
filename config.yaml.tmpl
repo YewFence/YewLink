@@ -1,6 +1,4 @@
-#
-# 本配置为自动生成，请前往 config.yaml 修改；不要手动更改本文件。
-#
+# 配置文件模板
 infisical:
   address: "{{ .Host }}"
 
@@ -18,14 +16,13 @@ templates:
     template-content: |
       {{"{{"}}- with secret "{{ $.ProjectID }}" "{{ $.Environment }}" "{{ secretPath $.RootFolder . }}" {{"}}"}}
       {{"{{"}}- range . {{"}}"}}
-      {{"{{"}}- if .Comment {{"}}"}}
-      # {{"{{"}} .Comment {{"}}"}}
+      {{"{{"}}- if .Comment {{"}}"}}# {{"{{"}} .Comment {{"}}"}}
       {{"{{"}} end -{{"}}"}}
       {{"{{"}} .Key {{"}}"}}="{{"{{"}} .Value {{"}}"}}"
 
       {{"{{"}} end -{{"}}"}}
-      {{"{{"}}- end {{"}}"}}
+      {{"{{"}}- end -{{"}}"}}
+
     config:
       polling-interval: {{ $.PollingInterval }}
 {{ end }}
-
