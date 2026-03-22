@@ -76,13 +76,13 @@ docker compose up -d
 示例文件见 [docker-compose.yml](docker-compose.yml)
 
 镜像使用 `ghcr.io/yewfence/infisical-config-init` 与 `ghcr.io/yewfence/infisical-cli:latest`
-由于[官方 CLI](github.com/infisical/cli) 有 BUG，`agent` 模式下无法输出变量的注释到 `.env` 文件中，详见 [ISSUE](https://github.com/Infisical/cli/issues/103)，我已经提交了修复 [PR](https://github.com/Infisical/cli/pull/104)，但是尚未被合并，所以我在 fork 中自行构建了已修复问题的版本，并跟随官方版本更新
+由于[官方 CLI](https://github.com/infisical/cli) 有 BUG，`agent` 模式下无法输出变量的注释到 `.env` 文件中，详见 [ISSUE](https://github.com/Infisical/cli/issues/103)，我已经提交了修复 [PR](https://github.com/Infisical/cli/pull/104)，但是尚未被合并，所以我在 fork 中自行构建了已修复问题的版本，并跟随官方版本更新
 
 如果你不介意该问题，可以根据 `docker-compose.yml` 文件中的注释替换为使用官方镜像 `infisical/cli:latest`。
 
 ### 目录结构
 
-```
+```text
 infisical-agent/
 ├── docker-compose.yml    # Agent 容器配置
 ├── config.yaml           # 配置文件（需自行创建并编辑）
