@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="./img/logo.webp" alt="YewLink" height="120" />
+</div>
+
 # YewLink
 
 > 🚀 **YewLink** 是一款专为个人开发者与 Homelab 打造的零配置、无感知的基于 Infisical 的密钥同步与分发中枢。
