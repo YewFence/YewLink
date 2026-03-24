@@ -60,4 +60,4 @@ config.yaml (用户编辑) + config.yaml.tmpl (内置模板)
 
 - `client-id`、`client-secret`、`config.yaml`、`secrets/` 均在 `.gitignore` 中，绝对不要提交
 - Go 模块路径为 `github.com/yewfence/yewlink`，依赖仅 `gopkg.in/yaml.v3`
-- Dockerfile 使用 Go 1.21，CI 使用 Go 1.23
+- 使用 Go 1.24

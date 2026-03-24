@@ -36,7 +36,7 @@
 
 ```text
 /opt/stacks/
-├── yewlink/                  <-- 本项目，作为基础设施被优先启动
+├── YewLink/                  <-- 本项目，作为基础设施被优先启动
 │   ├── docker-compose.yml
 │   └── secrets/              <-- 自动拉取并分类生成各服务的 .env 文件
 │       ├── nginx.env
@@ -44,14 +44,14 @@
 │
 ├── nginx/                    <-- 你的业务服务 A
 │   ├── docker-compose.yml
-│   └── .env -> ../yewlink/secrets/nginx.env  <-- 核心：通过软链接挂载
+│   └── .env -> ../YewLink/secrets/nginx.env  <-- 核心：通过软链接挂载
 │
 └── vaultwarden/              <-- 你的业务服务 B
     ├── docker-compose.yml
-    └── .env -> ../yewlink/secrets/vaultwarden.env
+    └── .env -> ../YewLink/secrets/vaultwarden.env
 ```
 
-**实际体验**：你只需要在 Infisical 云端更新密钥，YewLink 就会在后台默默将其同步至 `/opt/stacks/yewlink/secrets/` 目录。当业务服务重新部署或重启时，它们会顺着这根软链接，自然而然地加载到最新配置。整个体系极度解耦且符合直觉。
+**实际体验**：你只需要在 Infisical 云端更新密钥，YewLink 就会在后台默默将其同步至 `/opt/stacks/YewLink/secrets/` 目录。当业务服务重新部署或重启时，它们会顺着这根软链接，自然而然地加载到最新配置。整个体系极度解耦且符合直觉。
 
 ---
 
@@ -84,8 +84,8 @@
 ```bash
 # 1. 克隆到你的 docker 配置目录
 cd /path/to/docker-configs
-git clone https://github.com/yewfence/yewlink.git
-cd yewlink
+git clone https://github.com/yewfence/YewLink.git
+cd YewLink
 
 # 2. 创建认证文件 (请妥善保管)
 echo "your-client-id" > client-id
@@ -120,7 +120,7 @@ cd /path/to/vaultwarden
 cp .env .env.backup
 
 # 创建软链接
-ln -sf ../yewlink/secrets/vaultwarden.env .env
+ln -sf ../YewLink/secrets/vaultwarden.env .env
 ```
 
 同时在业务的 `docker-compose.yml` 中添加 `env_file` 确保变量注入容器：
@@ -164,7 +164,7 @@ yewlink-init  |     cd ../services2 && mv .env .env.bak
 1. **Infisical 云端**：创建文件夹 `/<服务名>`，录入环境变量。*(开启了自动发现功能后可以跳过修改 config.yaml 的步骤)*
 2. **YewLink 重载**：执行 `./reload.sh` 触发自动发现并重新生成配置。
 > 如果创建了新服务需要手动执行重载以重新生成模板文件，而如果只是修改了某个服务的环境变量，YewLink 会在下一个轮询周期自动更新对应的 `.env` 文件，可以等待它自动更新，无需手动重载。
-3. **业务端链接**：如上文所述，使用 `ln -sf ../yewlink/secrets/<服务名>.env .env` 创建软链接。并在 `docker-compose.yml` 中添加 `env_file: .env` 即可。
+3. **业务端链接**：如上文所述，使用 `ln -sf ../YewLink/secrets/<服务名>.env .env` 创建软链接。并在 `docker-compose.yml` 中添加 `env_file: .env` 即可。
 
 💡 **从已有服务平滑迁移**：
 将原 `.env` 文件中的变量复制到 Infisical 网页端并导入，然后按照上述步骤用软链接替换掉原来的 `.env` 即可完成迁移。
@@ -174,7 +174,7 @@ yewlink-init  |     cd ../services2 && mv .env .env.bak
 ### 📂 部署时目录结构
 
 ```text
-yewlink/
+YewLink/
 ├── docker-compose.yml    # YewLink 的 Docker Compose 配置
 ├── config.yaml           # 基础配置文件（填写 Project ID 等）
 ├── config.example.yaml   # 配置示例
@@ -188,7 +188,7 @@ yewlink/
 
 ## 补充说明
 
-### 关于 `dockek-compose.yml` 中使用的镜像版本 (官方 Bug 修复)
+### 关于 `docker-compose.yml` 中使用的镜像版本 (官方 Bug 修复)
 
 本项目默认镜像使用 `ghcr.io/yewfence/yewlink-init` 与 `ghcr.io/yewfence/infisical-cli:latest`。
 由于[官方 CLI](https://github.com/infisical/cli) 存在 BUG，`agent` 模式下无法输出变量的注释到 `.env` 文件中（详见 [ISSUE #103](https://github.com/Infisical/cli/issues/103)）。我已经提交了修复 [PR #104](https://github.com/Infisical/cli/pull/104)，在合并前，我自行构建了修复版本的镜像并跟随官方更新。
@@ -211,7 +211,7 @@ go build -ldflags="-s -w" -o yewlink-init .
 ./yewlink-init
 ```
 
-也可以直接从 [Release 页面](https://github.com/YewFence/yewlink/releases/latest) 下载预编译的二进制文件。
+也可以直接从 [Release 页面](https://github.com/YewFence/YewLink/releases/latest) 下载预编译的二进制文件。
 
 ### 注意事项与安全防御
 
