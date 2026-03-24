@@ -115,14 +115,13 @@ docker compose up -d && docker compose logs -f
 在你的业务服务目录下创建符号链接，将其指向生成的 secrets 文件：
 
 ```bash
-# 以 vaultwarden 为例
-cd /path/to/vaultwarden
+cd /path/to/<service_name>
 
 # 备份原有的 .env 文件（如果存在）
 cp .env .env.backup
 
 # 创建软链接
-ln -sf ../YewLink/secrets/vaultwarden.env .env
+ln -sf ../YewLink/secrets/<service_name>.env .env
 ```
 
 同时在业务的 `docker-compose.yml` 中添加 `env_file` 确保变量注入容器：
