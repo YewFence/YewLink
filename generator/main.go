@@ -16,7 +16,7 @@ type GeneratorConfig struct {
 	autoPrune   bool
 }
 
-const projectHomepage = "https://github.com/YewFence/infisical-agent"
+const projectHomepage = "https://github.com/YewFence/yewlink"
 
 // 程序入口：读取配置、校验并渲染模板输出文件
 func main() {

@@ -186,7 +186,7 @@ yewlink/
 
 ### 关于 `dockek-compose.yml` 中使用的镜像版本 (官方 Bug 修复)
 
-本项目默认镜像使用 `ghcr.io/yewfence/infisical-yewlink-init` 与 `ghcr.io/yewfence/infisical-cli:latest`。
+本项目默认镜像使用 `ghcr.io/yewfence/yewlink-init` 与 `ghcr.io/yewfence/infisical-cli:latest`。
 由于[官方 CLI](https://github.com/infisical/cli) 存在 BUG，`agent` 模式下无法输出变量的注释到 `.env` 文件中（详见 [ISSUE #103](https://github.com/Infisical/cli/issues/103)）。我已经提交了修复 [PR #104](https://github.com/Infisical/cli/pull/104)，在合并前，我自行构建了修复版本的镜像并跟随官方更新。
 
 如果你不介意该问题，可以修改 `docker-compose.yml` 替换为官方镜像 `infisical/cli:latest`。
@@ -203,11 +203,11 @@ docker compose up -d --build
 
 ```bash
 cd generator
-go build -ldflags="-s -w" -o icg .
-./icg
+go build -ldflags="-s -w" -o yewlink-init .
+./yewlink-init
 ```
 
-也可以直接从 [Release 页面](https://github.com/YewFence/infisical-agent/releases/latest) 下载预编译的二进制文件。
+也可以直接从 [Release 页面](https://github.com/YewFence/yewlink/releases/latest) 下载预编译的二进制文件。
 
 ### 注意事项与安全防御
 

@@ -37,7 +37,7 @@ func resolveProjectDir(flagValue string) (name string, absPath string) {
 	cwd, _ := os.Getwd()
 	name = filepath.Base(cwd)
 	if name == "" || name == "." {
-		name = "infisical-agent"
+		name = "yewlink"
 	}
 	return name, cwd
 }
@@ -167,7 +167,7 @@ func getExecutableDirName() string {
 func getWorkingDirName() string {
 	cwd, err := os.Getwd()
 	if err != nil || cwd == "" || cwd == "." {
-		return "infisical-agent"
+		return "yewlink"
 	}
 	return filepath.Base(cwd)
 }

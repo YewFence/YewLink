@@ -21,16 +21,16 @@ services:
       # 用于清理过期的秘密文件
       - ./secrets:/secrets
 
-  infisical-agent:
+  yewlink:
     # 个人修复版本，详细信息见 README.md
     image: ghcr.io/yewfence/infisical-cli:latest
     # 官方 CLI 镜像
     # image: infisical/cli:latest
-    container_name: infisical-agent
+    container_name: yewlink
     restart: always
     command: agent --config=/generated/config.yaml
     depends_on:
-      config-init:
+      yewlink-init:
         condition: service_completed_successfully
     volumes:
       - generated-config:/generated:ro

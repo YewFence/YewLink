@@ -101,12 +101,12 @@ func TestBuildLnCommand(t *testing.T) {
 
 	t.Run("relative mode", func(t *testing.T) {
 		cfg := GeneratorConfig{
-			projectName: "infisical-agent",
-			projectPath: filepath.Join("root", "infisical-agent"),
+			projectName: "yewlink",
+			projectPath: filepath.Join("root", "yewlink"),
 			outputMode:  outputModeRelative,
 		}
 
-		want := "cd ../nginx && ln -sf " + filepath.Join("..", "infisical-agent", "secrets", "nginx.env") + " .env"
+		want := "cd ../nginx && ln -sf " + filepath.Join("..", "yewlink", "secrets", "nginx.env") + " .env"
 		if got := buildLnCommand("nginx", cfg); got != want {
 			t.Fatalf("buildLnCommand() = %q, want %q", got, want)
 		}
@@ -114,12 +114,12 @@ func TestBuildLnCommand(t *testing.T) {
 
 	t.Run("absolute mode", func(t *testing.T) {
 		cfg := GeneratorConfig{
-			projectName: "infisical-agent",
-			projectPath: filepath.Join("root", "infisical-agent"),
+			projectName: "yewlink",
+			projectPath: filepath.Join("root", "yewlink"),
 			outputMode:  outputModeAbsolute,
 		}
 
-		want := "ln -sf " + filepath.Join("root", "infisical-agent", "secrets", "nginx.env") + " " + filepath.Join("root", "infisical-agent", "nginx", ".env")
+		want := "ln -sf " + filepath.Join("root", "yewlink", "secrets", "nginx.env") + " " + filepath.Join("root", "yewlink", "nginx", ".env")
 		if got := buildLnCommand("nginx", cfg); got != want {
 			t.Fatalf("buildLnCommand() = %q, want %q", got, want)
 		}
@@ -139,11 +139,11 @@ func TestBuildMvCommand(t *testing.T) {
 
 	t.Run("absolute mode", func(t *testing.T) {
 		cfg := GeneratorConfig{
-			projectPath: filepath.Join("root", "infisical-agent"),
+			projectPath: filepath.Join("root", "yewlink"),
 			outputMode:  outputModeAbsolute,
 		}
 
-		target := filepath.Join("root", "infisical-agent", "nginx", ".env")
+		target := filepath.Join("root", "yewlink", "nginx", ".env")
 		want := "mv " + target + " " + target + ".bak"
 		if got := buildMvCommand("nginx", cfg); got != want {
 			t.Fatalf("buildMvCommand() = %q, want %q", got, want)
@@ -185,7 +185,7 @@ func TestGetWorkingDirName(t *testing.T) {
 
 	want := filepath.Base(cwd)
 	if want == "" || want == "." {
-		want = "infisical-agent"
+		want = "yewlink"
 	}
 
 	if got := getWorkingDirName(); got != want {
