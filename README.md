@@ -180,6 +180,7 @@ YewLink/
 ├── config.example.yaml   # 配置示例
 ├── client-id             # Machine Identity ID
 ├── client-secret         # Machine Identity Secret
+├── reload.sh             # 快速重载脚本
 └── secrets/              # 生成的 secrets 文件（自动创建，请注意安全防护）
     ├── nginx.env
     ├── postgres.env
