@@ -20,11 +20,11 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             goarch: amd64
-            output: infisical-config-generator
+            output: yewlink-init
           - os: windows-latest
             goos: windows
             goarch: amd64
-            output: infisical-config-generator.exe
+            output: yewlink-init.exe
 
     runs-on: ${{ matrix.os }}
 

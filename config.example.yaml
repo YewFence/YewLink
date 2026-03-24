@@ -1,5 +1,5 @@
 # Infisical Agent 配置
-# 编辑此文件后运行 generator 生成 config.yaml
+# 编辑此文件后运行 generator 即可生成 Infisical CLI 可直接使用的 config.yaml
 
 # Infisical 服务地址 (留空则使用官方云服务)
 # host: "https://app.infisical.com"
@@ -17,7 +17,7 @@ polling_interval: "300s"
 # root_folder: "/project-a"
 
 # 自动发现模式：设为 true 时自动从 Infisical 读取 root_folder 下的所有文件夹作为服务
-# 开启后 services 字段可省略；凭据路径通过 -client-id-file / -client-secret-file 指定
+# 开启后 services 字段可省略
 # auto_discover: true
 
 # 服务列表 - 每个服务名称对应 Infisical 中读取配置的根文件夹下的一个文件夹
@@ -25,5 +25,4 @@ polling_interval: "300s"
 services:
   - nginx
   # - postgres
-  # - caddy
   # - 添加更多服务...

@@ -1,4 +1,4 @@
-module github.com/yewyard/infisical-config-generator
+module github.com/yewfence/yewlink
 
 go 1.24
 

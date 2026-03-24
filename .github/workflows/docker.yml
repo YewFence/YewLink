@@ -31,7 +31,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/yewfence/infisical-config-init
+          images: ghcr.io/yewfence/yewlink-init
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
