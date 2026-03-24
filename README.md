@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./img/logo.webp" alt="YewLink" height="120" />
+  <img src="https://raw.githubusercontent.com/YewFence/YewLink/main/img/logo.webp" alt="YewLink" height="120" />
 </div>
 
 <div align="center">
@@ -8,7 +8,7 @@
 
 > 🚀 **YewLink** 是一款专为个人开发者与 Homelab 打造的零配置、无感知的基于 Infisical 的密钥同步与分发中枢。
 
-本项目是 Infisical 官方 [Agent 模式](https://infisical.com/docs/integrations/platforms/infisical-agent) 的一个包装，也是一个开箱即用的本地服务 Secret 管理器。它通过提取云端凭证、本地落盘并结合**软链接 (Symlink)** 的模式，为你提供了一个极其简单、透明且无供应商绑定的密钥管理方案。
+本项目是 Infisical 官方 [Agent 模式](https://infisical.com/docs/integrations/platforms/infisical-agent) 的一个包装，也是一个开箱即用的本地服务 Secret 管理器。它通过提取云端凭证、本地落盘并使用 **软链接 (Symlink)** 的模式，为你提供了一个极其简单、透明且无供应商绑定的密钥管理方案。
 
 ---
 
@@ -53,7 +53,7 @@
     └── .env -> ../YewLink/secrets/vaultwarden.env
 ```
 
-**实际体验**：你只需要在 Infisical 云端更新密钥，YewLink 就会在后台默默将其同步至 `/opt/stacks/YewLink/secrets/` 目录。当业务服务重新部署或重启时，它们会顺着这根软链接，自然而然地加载到最新配置。整个体系极度解耦且符合直觉。
+**实际体验**：你只需要在 Infisical 云端更新密钥，YewLink 就会在后台将其同步至 `/path/to/YewLink/secrets/` 目录。当业务服务重新部署或重启时，它们会顺着这根软链接加载从云端同步的最新配置。
 
 ---
 
@@ -134,7 +134,7 @@ services:
     # ...其他配置
 ```
 
-这样 secrets 会通过两种方式完美生效：
+这样 secrets 会通过两种方式生效：
 - **符号链接的 `.env`**：让 `docker-compose.yml` 中的 `${VAR}` 变量替换和默认值语法正常工作。
 - **`env_file: .env`**：确保所有变量都直接注入到容器进程的运行环境中。
 
@@ -164,7 +164,11 @@ yewlink-init  |     cd ../services2 && mv .env .env.bak
 
 1. **Infisical 云端**：创建文件夹 `/<服务名>`，录入环境变量。*(开启了自动发现功能后可以跳过修改 config.yaml 的步骤)*
 2. **YewLink 重载**：执行 `./reload.sh` 触发自动发现并重新生成配置。
-> 如果创建了新服务需要手动执行重载以重新生成模板文件，而如果只是修改了某个服务的环境变量，YewLink 会在下一个轮询周期自动更新对应的 `.env` 文件，可以等待它自动更新，无需手动重载。
+
+> 如果创建了新服务需要手动执行重载，以重新生成模板文件（实际上 `docker compose up yewlink-init` 即可，当然完全重新构建容器也没问题）
+> 如果只是修改了某个服务的环境变量，YewLink 会在下一个轮询周期自动更新对应的 `.env` 文件，可以等待它自动更新，无需手动重载，或者 `docker compose restart yewlink` 服务使其立即更新。
+> 需要注意，Infisical CLI 容器偶尔会在重启后认证失败，这时可以通过 `docker compose up yewlink --force-recreate` 令它重新认证即可解决问题
+
 3. **业务端链接**：如上文所述，使用 `ln -sf ../YewLink/secrets/<服务名>.env .env` 创建软链接。并在 `docker-compose.yml` 中添加 `env_file: .env` 即可。
 
 💡 **从已有服务平滑迁移**：
