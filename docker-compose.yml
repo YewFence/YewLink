@@ -1,6 +1,8 @@
 services:
-  config-init:
-    image: ghcr.io/yewfence/infisical-config-init:latest
+  yewlink-init:
+    image: ghcr.io/yewfence/yewlink-init:latest
+    container_name: yewlink-init
+    restart: "no"
     # 开发时可本地构建
     build: .
     environment:
