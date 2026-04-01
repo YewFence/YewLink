@@ -16,7 +16,7 @@ templates:
     template-content: |
       {{"{{"}}- with secret "{{ $.ProjectID }}" "{{ $.Environment }}" "{{ secretPath $.RootFolder . }}" {{"}}"}}
       {{"{{"}}- range . {{"}}"}}
-      {{"{{"}}- if .Comment {{"}}"}}# {{"{{"}} .Comment {{"}}"}}
+      {{"{{"}}- if .Comment {{"}}"}}# {{"{{"}} regexReplaceAll "\n(.)" .Comment "\n# $1" {{"}}"}}
       {{"{{"}} end -{{"}}"}}
       {{"{{"}} .Key {{"}}"}}="{{"{{"}} .Value {{"}}"}}"
 
