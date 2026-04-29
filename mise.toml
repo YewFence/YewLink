@@ -1,0 +1,4 @@
+[tools]
+gitleaks = "latest"
+go = "1.24"
+lefthook = "latest"
