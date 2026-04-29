@@ -10,13 +10,15 @@ import (
 )
 
 type Config struct {
-	Host            string   `yaml:"host"`
-	ProjectID       string   `yaml:"project_id"`
-	Environment     string   `yaml:"environment"`
-	PollingInterval string   `yaml:"polling_interval"`
-	RootFolder      string   `yaml:"root_folder"`
-	Services        []string `yaml:"services"`
-	AutoDiscover    bool     `yaml:"auto_discover"`
+	Host             string   `yaml:"host"`
+	ProjectID        string   `yaml:"project_id"`
+	Environment      string   `yaml:"environment"`
+	PollingInterval  string   `yaml:"polling_interval"`
+	RootFolder       string   `yaml:"root_folder"`
+	Services         []string `yaml:"services"`
+	AutoDiscover     bool     `yaml:"auto_discover"`
+	ClientIDPath     string   `yaml:"-"`
+	ClientSecretPath string   `yaml:"-"`
 }
 
 // 读取并解析 YAML 配置文件

@@ -10,6 +10,9 @@ services:
       # - OUTPUT_MODE=absolute
       # 是否自动清理过期的秘密文件(默认启用)，可以改为 false 来保留过期文件
       # - AUTO_PRUNE=true
+      # 也可以通过环境变量传入凭据，未设置时继续使用下方文件挂载
+      - INFISICAL_CLIENT_ID
+      - INFISICAL_CLIENT_SECRET
       - OUTPUT_MODE=relative
       - PROJECT_DIR=${PWD}
     volumes:

@@ -27,6 +27,7 @@ func main() {
 		projectDir       string
 		clientIDFile     string
 		clientSecretFile string
+		agentConfigDir   string
 	)
 
 	flag.StringVar(&servicesFile, "services", "config.yaml", "服务配置文件路径")
@@ -35,6 +36,7 @@ func main() {
 	flag.StringVar(&projectDir, "project-dir", "", "项目根目录（用于生成符号链接命令）")
 	flag.StringVar(&clientIDFile, "client-id-file", "/config/client-id", "client-id 凭据文件路径（auto_discover 模式使用）")
 	flag.StringVar(&clientSecretFile, "client-secret-file", "/config/client-secret", "client-secret 凭据文件路径（auto_discover 模式使用）")
+	flag.StringVar(&agentConfigDir, "agent-config-dir", "", "Agent 读取生成配置的目录路径（环境变量凭据模式使用）")
 
 	var secretsDir string
 	flag.StringVar(&secretsDir, "secrets-dir", "", "secrets 输出目录（用于清理过期 .env 文件，为空则跳过清理）")
@@ -59,13 +61,24 @@ func main() {
 		exitWithError("配置验证失败", err)
 	}
 
+	clientIDRef, err := resolveCredentialRef(clientIDFile, clientIDEnvName, generatedClientIDFileName, outputFile, agentConfigDir)
+	if err != nil {
+		exitWithError("解析 client-id 凭据失败", err)
+	}
+	clientSecretRef, err := resolveCredentialRef(clientSecretFile, clientSecretEnvName, generatedClientSecretFileName, outputFile, agentConfigDir)
+	if err != nil {
+		exitWithError("解析 client-secret 凭据失败", err)
+	}
+	config.ClientIDPath = clientIDRef.agentPath
+	config.ClientSecretPath = clientSecretRef.agentPath
+
 	// 自动发现模式：调用 Infisical API 枚举文件夹
 	if config.AutoDiscover {
-		clientID, err := readCredentialFile(clientIDFile)
+		clientID, err := credentialValue(clientIDRef, clientIDFile)
 		if err != nil {
 			exitWithError("auto_discover 模式读取 client-id 失败", err)
 		}
-		clientSecret, err := readCredentialFile(clientSecretFile)
+		clientSecret, err := credentialValue(clientSecretRef, clientSecretFile)
 		if err != nil {
 			exitWithError("auto_discover 模式读取 client-secret 失败", err)
 		}

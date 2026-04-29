@@ -9,4 +9,4 @@ FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /build/yewlink-init /usr/local/bin/yewlink-init
 COPY config.yaml.tmpl .
-ENTRYPOINT ["yewlink-init", "-services", "/input/config.yaml", "-template", "/app/config.yaml.tmpl", "-output", "/output/config.yaml", "-secrets-dir", "/secrets"]
+ENTRYPOINT ["yewlink-init", "-services", "/input/config.yaml", "-template", "/app/config.yaml.tmpl", "-output", "/output/config.yaml", "-agent-config-dir", "/generated", "-secrets-dir", "/secrets"]

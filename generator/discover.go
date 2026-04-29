@@ -8,11 +8,25 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
 const maxRetries = 3
+
+const (
+	clientIDEnvName               = "INFISICAL_CLIENT_ID"
+	clientSecretEnvName           = "INFISICAL_CLIENT_SECRET"
+	generatedClientIDFileName     = "generated-client-id"
+	generatedClientSecretFileName = "generated-client-secret"
+)
+
+type credentialRef struct {
+	value     string
+	agentPath string
+	fromEnv   bool
+}
 
 // httpClient 带超时的 HTTP 客户端，避免默认客户端无限等待
 var httpClient = &http.Client{Timeout: 10 * time.Second}
@@ -58,6 +72,41 @@ func readCredentialFile(path string) (string, error) {
 		return "", fmt.Errorf("读取凭据文件 %s: %w", path, err)
 	}
 	return strings.TrimSpace(string(data)), nil
+}
+
+func resolveCredentialRef(filePath, envName, outputFileName, outputFile, agentConfigDir string) (credentialRef, error) {
+	envValue := strings.TrimSpace(os.Getenv(envName))
+	if envValue == "" {
+		return credentialRef{agentPath: filePath}, nil
+	}
+
+	outputPath, agentPath := buildGeneratedCredentialPaths(outputFileName, outputFile, agentConfigDir)
+	if err := os.WriteFile(outputPath, []byte(envValue), 0o600); err != nil {
+		return credentialRef{}, fmt.Errorf("写入环境变量凭据文件 %s: %w", outputPath, err)
+	}
+	return credentialRef{
+		value:     envValue,
+		agentPath: agentPath,
+		fromEnv:   true,
+	}, nil
+}
+
+func buildGeneratedCredentialPaths(name, outputFile, agentConfigDir string) (string, string) {
+	outputDir := filepath.Dir(outputFile)
+	if outputDir == "" {
+		outputDir = "."
+	}
+	if agentConfigDir == "" {
+		agentConfigDir = outputDir
+	}
+	return filepath.Join(outputDir, name), filepath.Join(agentConfigDir, name)
+}
+
+func credentialValue(ref credentialRef, filePath string) (string, error) {
+	if ref.fromEnv {
+		return ref.value, nil
+	}
+	return readCredentialFile(filePath)
 }
 
 // 调用 Universal Auth 登录接口，返回 accessToken

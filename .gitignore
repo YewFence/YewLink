@@ -1,5 +1,6 @@
-# Claude
+# AI
 .claude/
+.codex
 
 # 编译产物
 *.exe
@@ -9,6 +10,8 @@ icg
 # 敏感文件
 client-id
 client-secret
+generated-client-id
+generated-client-secret
 config-no-manually-edit.yaml
 config.yaml
 services.yaml

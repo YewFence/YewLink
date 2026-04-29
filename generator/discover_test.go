@@ -37,6 +37,81 @@ func TestReadCredentialFile(t *testing.T) {
 	})
 }
 
+func TestResolveCredentialRef(t *testing.T) {
+	t.Helper()
+
+	t.Run("file fallback", func(t *testing.T) {
+		t.Setenv("TEST_INFISICAL_CLIENT_ID", "")
+
+		ref, err := resolveCredentialRef("/config/client-id", "TEST_INFISICAL_CLIENT_ID", generatedClientIDFileName, filepath.Join(t.TempDir(), "config.yaml"), "/generated")
+		if err != nil {
+			t.Fatalf("resolveCredentialRef() error = %v", err)
+		}
+		if ref.fromEnv {
+			t.Fatalf("fromEnv = true, want false")
+		}
+		if ref.agentPath != "/config/client-id" {
+			t.Fatalf("agentPath = %q, want %q", ref.agentPath, "/config/client-id")
+		}
+	})
+
+	t.Run("env writes generated credential", func(t *testing.T) {
+		dir := t.TempDir()
+		t.Setenv("TEST_INFISICAL_CLIENT_ID", "  env-client-id \n")
+
+		ref, err := resolveCredentialRef("/config/client-id", "TEST_INFISICAL_CLIENT_ID", generatedClientIDFileName, filepath.Join(dir, "config.yaml"), "/generated")
+		if err != nil {
+			t.Fatalf("resolveCredentialRef() error = %v", err)
+		}
+		if !ref.fromEnv {
+			t.Fatalf("fromEnv = false, want true")
+		}
+		if ref.value != "env-client-id" {
+			t.Fatalf("value = %q, want %q", ref.value, "env-client-id")
+		}
+		if ref.agentPath != "/generated/generated-client-id" {
+			t.Fatalf("agentPath = %q, want %q", ref.agentPath, "/generated/generated-client-id")
+		}
+
+		data, err := os.ReadFile(filepath.Join(dir, generatedClientIDFileName))
+		if err != nil {
+			t.Fatalf("read generated credential: %v", err)
+		}
+		if string(data) != "env-client-id" {
+			t.Fatalf("generated credential = %q, want %q", string(data), "env-client-id")
+		}
+	})
+}
+
+func TestCredentialValue(t *testing.T) {
+	t.Helper()
+
+	t.Run("env value", func(t *testing.T) {
+		got, err := credentialValue(credentialRef{value: "env-client-secret", fromEnv: true}, "/missing")
+		if err != nil {
+			t.Fatalf("credentialValue() error = %v", err)
+		}
+		if got != "env-client-secret" {
+			t.Fatalf("credentialValue() = %q, want %q", got, "env-client-secret")
+		}
+	})
+
+	t.Run("file value", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "client-secret")
+		if err := os.WriteFile(path, []byte("file-client-secret\n"), 0o600); err != nil {
+			t.Fatalf("write credential: %v", err)
+		}
+
+		got, err := credentialValue(credentialRef{}, path)
+		if err != nil {
+			t.Fatalf("credentialValue() error = %v", err)
+		}
+		if got != "file-client-secret" {
+			t.Fatalf("credentialValue() = %q, want %q", got, "file-client-secret")
+		}
+	})
+}
+
 func TestFetchToken(t *testing.T) {
 	t.Helper()
 
